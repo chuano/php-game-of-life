@@ -1,0 +1,27 @@
+{
+    "name": "chuano/game-of-life",
+    "description": "Game of live implementation",
+    "type": "project",
+    "authors": [
+        {
+            "name": "Chuano Puchol",
+            "email": "chuano@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Chuano\\GameOfLife\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "require": {
+        "php": "^7.4"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9"
+    }
+}
