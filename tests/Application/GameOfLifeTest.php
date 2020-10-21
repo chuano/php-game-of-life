@@ -61,7 +61,7 @@ class GameOfLifeTest extends TestCase
     }
 
     /** @test */
-    public function it_should_count_0_neighbors()
+    public function it_should_count_5_neighbors()
     {
         /*
          [ ][*][ ][ ][ ]
@@ -75,14 +75,14 @@ class GameOfLifeTest extends TestCase
         $game = new GameOfLife($universe);
 
         $reflection = new ReflectionClass(GameOfLife::class);
-        $method = $reflection->getMethod('countAliveNeigbors');
+        $method = $reflection->getMethod('getNeighbors');
         $method->setAccessible(true);
-        $neighbors = $method->invokeArgs($game, [0, 1]);
-        $this->assertEquals(0, $neighbors);
+        $neighbors = $method->invokeArgs($game, [1]);
+        $this->assertCount(5, $neighbors);
     }
 
     /** @test */
-    public function it_should_count_2_neighbors_in_left_top_corner()
+    public function it_should_count_3_neighbors_in_left_top_corner()
     {
         /*
          [*][*][ ][ ][ ]
@@ -98,14 +98,14 @@ class GameOfLifeTest extends TestCase
         $game = new GameOfLife($universe);
 
         $reflection = new ReflectionClass(GameOfLife::class);
-        $method = $reflection->getMethod('countAliveNeigbors');
+        $method = $reflection->getMethod('getNeighbors');
         $method->setAccessible(true);
-        $neighbors = $method->invokeArgs($game, [0, 0]);
-        $this->assertEquals(2, $neighbors);
+        $neighbors = $method->invokeArgs($game, [0]);
+        $this->assertCount(3, $neighbors);
     }
 
     /** @test */
-    public function it_should_count_2_neighbors_in_right_top_corner()
+    public function it_should_count_3_neighbors_in_right_top_corner()
     {
         /*
          [ ][ ][ ][*][*]
@@ -121,14 +121,14 @@ class GameOfLifeTest extends TestCase
         $game = new GameOfLife($universe);
 
         $reflection = new ReflectionClass(GameOfLife::class);
-        $method = $reflection->getMethod('countAliveNeigbors');
+        $method = $reflection->getMethod('getNeighbors');
         $method->setAccessible(true);
-        $neighbors = $method->invokeArgs($game, [0, 4]);
-        $this->assertEquals(2, $neighbors);
+        $neighbors = $method->invokeArgs($game, [4]);
+        $this->assertCount(3, $neighbors);
     }
 
     /** @test */
-    public function it_should_count_2_neighbors_in_left_bottom_corner()
+    public function it_should_count_3_neighbors_in_left_bottom_corner()
     {
         /*
          [ ][ ][ ][ ][ ]
@@ -144,14 +144,14 @@ class GameOfLifeTest extends TestCase
         $game = new GameOfLife($universe);
 
         $reflection = new ReflectionClass(GameOfLife::class);
-        $method = $reflection->getMethod('countAliveNeigbors');
+        $method = $reflection->getMethod('getNeighbors');
         $method->setAccessible(true);
-        $neighbors = $method->invokeArgs($game, [4, 0]);
-        $this->assertEquals(2, $neighbors);
+        $neighbors = $method->invokeArgs($game, [20]);
+        $this->assertCount(3, $neighbors);
     }
 
     /** @test */
-    public function it_should_count_2_neighbors_in_right_bottom_corner()
+    public function it_should_count_3_neighbors_in_right_bottom_corner()
     {
         /*
          [ ][ ][ ][ ][ ]
@@ -167,14 +167,14 @@ class GameOfLifeTest extends TestCase
         $game = new GameOfLife($universe);
 
         $reflection = new ReflectionClass(GameOfLife::class);
-        $method = $reflection->getMethod('countAliveNeigbors');
+        $method = $reflection->getMethod('getNeighbors');
         $method->setAccessible(true);
-        $neighbors = $method->invokeArgs($game, [4, 4]);
-        $this->assertEquals(2, $neighbors);
+        $neighbors = $method->invokeArgs($game, [25]);
+        $this->assertCount(3, $neighbors);
     }
 
     /** @test */
-    public function it_should_count_2_neighbors_in_center_bottom()
+    public function it_should_count_5_neighbors_in_center_bottom()
     {
         /*
          [ ][ ][ ][ ][ ]
@@ -190,38 +190,14 @@ class GameOfLifeTest extends TestCase
         $game = new GameOfLife($universe);
 
         $reflection = new ReflectionClass(GameOfLife::class);
-        $method = $reflection->getMethod('countAliveNeigbors');
+        $method = $reflection->getMethod('getNeighbors');
         $method->setAccessible(true);
-        $neighbors = $method->invokeArgs($game, [4, 2]);
-        $this->assertEquals(2, $neighbors);
+        $neighbors = $method->invokeArgs($game, [22]);
+        $this->assertCount(5, $neighbors);
     }
 
     /** @test */
-    public function it_should_count_3_neighbors_in_center_bottom()
-    {
-        /*
-         [ ][ ][ ][ ][ ]
-         [ ][ ][ ][ ][ ]
-         [ ][ ][ ][ ][ ]
-         [ ][ ][*][ ][ ]
-         [ ][*][*][*][ ]
-         */
-        $universe = new Universe(5);
-        $universe->getCell(3, 2)->markAlive();
-        $universe->getCell(4, 1)->markAlive();
-        $universe->getCell(4, 2)->markAlive();
-        $universe->getCell(4, 3)->markAlive();
-        $game = new GameOfLife($universe);
-
-        $reflection = new ReflectionClass(GameOfLife::class);
-        $method = $reflection->getMethod('countAliveNeigbors');
-        $method->setAccessible(true);
-        $neighbors = $method->invokeArgs($game, [4, 2]);
-        $this->assertEquals(3, $neighbors);
-    }
-
-    /** @test */
-    public function it_should_count_3_neighbors_in_center_bottom_2()
+    public function it_should_count_8_neighbors_in_center()
     {
         /*
          [ ][ ][ ][ ][ ]
@@ -238,10 +214,10 @@ class GameOfLifeTest extends TestCase
         $game = new GameOfLife($universe);
 
         $reflection = new ReflectionClass(GameOfLife::class);
-        $method = $reflection->getMethod('countAliveNeigbors');
+        $method = $reflection->getMethod('getNeighbors');
         $method->setAccessible(true);
-        $neighbors = $method->invokeArgs($game, [3, 2]);
-        $this->assertEquals(3, $neighbors);
+        $neighbors = $method->invokeArgs($game, [17]);
+        $this->assertCount(8, $neighbors);
     }
 }
 

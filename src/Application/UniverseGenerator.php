@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Chuano\GameOfLife\Application;
 
+use Chuano\GameOfLife\Domain\Cell;
 use Chuano\GameOfLife\Domain\Universe;
 use Exception;
 
@@ -18,7 +19,6 @@ class UniverseGenerator
     private int $rows;
     private int $columns;
     private float $aliveGoal;
-    private array $deadCells;
 
     /**
      * @throws Exception
@@ -45,7 +45,6 @@ class UniverseGenerator
     public function generate(): Universe
     {
         $this->universe = new Universe($this->rows, $this->columns);
-        $this->deadCells = $this->getDeadCells();
         $aliveCellsCounter = 0;
 
         while ($aliveCellsCounter < $this->aliveGoal) {
@@ -58,23 +57,18 @@ class UniverseGenerator
 
     private function markRandomAlive(): void
     {
-        $index = rand(0, count($this->deadCells) - 1);
-        $cellCoordinates = $this->deadCells[$index];
-        $this->universe->getCell($cellCoordinates['row'], $cellCoordinates['column'])->markAlive();
-        unset($this->deadCells[$index]);
-        $this->deadCells = array_values($this->deadCells);
+        $deadCells = $this->getDeadCells();
+        $index = rand(0, count($deadCells) - 1);
+        $deadCells[$index]->markAlive();
     }
 
     private function getDeadCells(): array
     {
-        $cells = [];
-        foreach ($this->universe->getGrid() as $rowNumber => $row) {
-            foreach ($row as $columnNumber => $cell) {
-                if (!$cell->isAlive()) {
-                    $cells[] = ['row' => $rowNumber, 'column' => $columnNumber];
-                }
-            }
-        }
-        return $cells;
+        return array_values(
+            array_filter(
+                $this->universe->getCells(),
+                fn(Cell $cell) => !$cell->isAlive()
+            )
+        );
     }
 }

@@ -18,7 +18,7 @@ while (true) {
         $iteration++;
         $printer->printUniverse($universe, $iteration);
         $manager->iterate();
-        usleep(5000);
+        //usleep(5000);
     } catch (Exception $exception) {
         echo $exception->getMessage() . PHP_EOL;
         break;

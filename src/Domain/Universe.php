@@ -6,44 +6,51 @@ namespace Chuano\GameOfLife\Domain;
 
 class Universe
 {
-    private array $grid;
+    private array $cells;
+    private int $rows;
+    private ?int $columns;
 
     public function __construct(int $rows, ?int $columns = null)
     {
-        $this->grid = [];
+        $this->cells = [];
         $columns = $columns ?: $rows;
+        $this->rows = $rows;
+        $this->columns = $columns;
 
-        for ($i = 0; $i < $rows; $i++) {
-            $this->addNewRow($columns);
+        for ($i = 0; $i < ($rows * $columns); $i++) {
+            $this->cells[] = new Cell();
         }
     }
 
-    private function addNewRow(int $columns): void
+    public function getRows(): int
     {
-        $row = [];
-        for ($i = 0; $i < $columns; $i++) {
-            $row[] = new Cell();
-        }
-        $this->grid[] = $row;
+        return $this->rows;
     }
 
-    public function getGrid(): array
+    public function getColumns(): int
     {
-        return $this->grid;
+        return $this->columns;
     }
 
     public function getCell(int $row, int $column): ?Cell
     {
-        return $this->grid[$row][$column] ?? null;
+        $offset = $row * $this->columns;
+        $index = $column + $offset;
+        return $this->cells[$index] ?? null;
+    }
+
+    public function getCells(): array
+    {
+        return $this->cells;
     }
 
     public function countAliveCells(): int
     {
-        $counter = 0;
-        foreach ($this->getGrid() as $row) {
-            $aliveCells = array_filter($row, fn(Cell $cell) => $cell->isAlive());
-            $counter += count($aliveCells);
-        }
-        return $counter;
+        return count(
+            array_filter(
+                $this->cells,
+                fn(Cell $cell) => $cell->isAlive()
+            )
+        );
     }
 }

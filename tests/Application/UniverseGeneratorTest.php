@@ -18,8 +18,7 @@ class UniverseGeneratorTest extends TestCase
         $totalSize = $axisSize * $axisSize;
         $universeGenerator = new UniverseGenerator($axisSize, $axisSize, $density);
         $universe = $universeGenerator->generate();
-        $this->assertCount($axisSize, $universe->getGrid());
-        $this->assertCount($axisSize, $universe->getGrid()[0]);
+        $this->assertCount($totalSize, $universe->getCells());
         $this->assertEquals(ceil($totalSize * $density), $universe->countAliveCells());
     }
 

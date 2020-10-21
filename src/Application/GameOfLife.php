@@ -30,109 +30,172 @@ class GameOfLife
         }
 
         $this->processCells(
-            $this->getIndexesCellsToKill(),
-            $this->getIndexesCellsToResurrect()
+            $this->getCellsToKill(),
+            $this->getCellsToResurect()
         );
     }
 
-    public function getUniverse(): Universe
+    private function getCellsToKill(): array
     {
-        return $this->universe;
+        return array_filter(
+            $this->universe->getCells(),
+            fn($index) => $this->hasTooFewOrTooManyNeighbors($index),
+            ARRAY_FILTER_USE_KEY
+        );
     }
 
-    private function getIndexesCellsToKill(): array
+    private function getCellsToResurect(): array
     {
-        $indexes = [];
-        foreach ($this->universe->getGrid() as $rowNumber => $row) {
-            $indexes = [
-                ...$indexes,
-                ...$this->getIndexesCellsToKillInRow($row, $rowNumber)
-            ];
-        }
-        return $indexes;
+        return array_filter(
+            $this->universe->getCells(),
+            fn($index) => $this->hasPerfectNeigbors($index),
+            ARRAY_FILTER_USE_KEY
+        );
     }
 
-    private function getIndexesCellsToKillInRow(array $row, int $rowNumber): array
+    private function hasTooFewOrTooManyNeighbors(int $currentIndex)
     {
-        $indexes = [];
-        foreach ($row as $columnNumber => $cell) {
-            if ($this->countAliveNeigbors($rowNumber, $columnNumber) < self::MIN_NEIGHBORS_FOR_ALIVE) {
-                $indexes[] = ['row' => $rowNumber, 'column' => $columnNumber];
-            }
-            if ($this->countAliveNeigbors($rowNumber, $columnNumber) > self::MAX_NEIGHBORS_FOR_ALIVE) {
-                $indexes[] = ['row' => $rowNumber, 'column' => $columnNumber];
-            }
-        }
-        return $indexes;
+        $neighbors = $this->getNeighbors($currentIndex);
+        $aliveNeighbors = count(
+            array_filter($neighbors, fn($cell) => $cell->isAlive())
+        );
+        return $aliveNeighbors < self::MIN_NEIGHBORS_FOR_ALIVE || $aliveNeighbors > self::MAX_NEIGHBORS_FOR_ALIVE;
     }
 
-    private function getIndexesCellsToResurrect(): array
+    private function hasPerfectNeigbors(int $currentIndex)
     {
-        $indexes = [];
-        foreach ($this->universe->getGrid() as $rowNumber => $row) {
-            $indexes = [
-                ...$indexes,
-                ...$this->getIndexesCellsToResurrectInRow($row, $rowNumber)
-            ];
-        }
-        return $indexes;
+        $neighbors = $this->getNeighbors($currentIndex);
+        $aliveNeighbors = count(
+            array_filter($neighbors, fn($cell) => $cell->isAlive())
+        );
+        return $aliveNeighbors === self::NEIGHBORS_FOR_RESURRECTION;
     }
 
-    private function getIndexesCellsToResurrectInRow(array $row, int $rowNumber): array
+    private function getNeighbors(int $currentIndex): array
     {
-        $indexes = [];
-        foreach ($row as $columnNumber => $cell) {
-            if ($this->countAliveNeigbors($rowNumber, $columnNumber) === self::NEIGHBORS_FOR_RESURRECTION) {
-                $indexes[] = ['row' => $rowNumber, 'column' => $columnNumber];
-            }
-        }
-        return $indexes;
+        return [
+            ...$this->getTopCells($currentIndex),
+            ...$this->getBottomCells($currentIndex),
+            ...$this->getSameRowCells($currentIndex)
+        ];
     }
 
-    private function countAliveNeigbors(int $rowNumber, int $columnNumber): int
+    private function getSameRowCells(int $currentIndex): array
     {
-        $counter = 0;
-        $firstColumn = $columnNumber > 0 ? $columnNumber - 1 : $columnNumber;
-        $lastColumn = $columnNumber < count($this->universe->getGrid()[0]) - 1 ? $columnNumber + 1 : $columnNumber;
+        $cells = [];
+        if (!$this->isFirstColumn($currentIndex)) {
+            $cells[] = $this->universe->getCells()[$currentIndex - 1];
+        }
+        if (!$this->isLastColumn($currentIndex)) {
+            $cells[] = $this->universe->getCells()[$currentIndex + 1];
+        }
+        return $cells;
+    }
 
-        // Row above
-        for ($i = $firstColumn; $i <= $lastColumn; $i++) {
-            $cell = $this->universe->getCell($rowNumber - 1, $i);
-            if ($cell && $cell->isAlive()) {
-                $counter++;
-            }
+    private function getTopCells(int $currentIndex): array
+    {
+        if ($this->isFirstRow($currentIndex)) {
+            return [];
         }
 
-        // Row below
-        for ($i = $firstColumn; $i <= $lastColumn; $i++) {
-            $cell = $this->universe->getCell($rowNumber + 1, $i);
-            if ($cell && $cell->isAlive()) {
-                $counter++;
-            }
+        if ($this->isFirstColumn($currentIndex)) {
+            $firstTopCellIndex = $currentIndex - $this->universe->getColumns();
+        } else {
+            $firstTopCellIndex = $currentIndex - 1 - $this->universe->getColumns();
         }
 
-        // Previous column
-        $cell = $this->universe->getCell($rowNumber, $columnNumber - 1);
-        if ($cell && $cell->isAlive()) {
-            $counter++;
+        if ($this->isLastColumn($currentIndex)) {
+            $lastTopCellIndex = $currentIndex - $this->universe->getColumns();
+        } else {
+            $lastTopCellIndex = $currentIndex + 1 - $this->universe->getColumns();
         }
 
-        // Next column
-        $cell = $this->universe->getCell($rowNumber, $columnNumber + 1);
-        if ($cell && $cell->isAlive()) {
-            $counter++;
+        return $this->getCellRange($firstTopCellIndex, $lastTopCellIndex);
+    }
+
+    private function getBottomCells(int $currentIndex): array
+    {
+        if ($this->isLastRow($currentIndex)) {
+            return [];
         }
 
-        return $counter;
+        if ($this->isFirstColumn($currentIndex)) {
+            $firstBottomCellIndex = $currentIndex + $this->universe->getColumns();
+        } else {
+            $firstBottomCellIndex = $currentIndex - 1 + $this->universe->getColumns();
+        }
+
+        if ($this->isLastColumn($currentIndex)) {
+            $lastBottomCellIndex = $currentIndex + $this->universe->getColumns();
+        } else {
+            $lastBottomCellIndex = $currentIndex + 1 + $this->universe->getColumns();
+        }
+
+        return $this->getCellRange($firstBottomCellIndex, $lastBottomCellIndex);
+    }
+
+    private function getCurrentRow(int $currentIndex): int
+    {
+        if ($currentIndex === count($this->universe->getCells())) {
+            $currentIndex--;
+        }
+        return (int)floor($currentIndex / $this->universe->getColumns());
+    }
+
+    private function getCurrentColumn(int $currentIndex): int
+    {
+        if ($currentIndex === count($this->universe->getCells())) {
+            $currentIndex--;
+        }
+        return $currentIndex - ($this->universe->getColumns() * $this->getCurrentRow($currentIndex));
+    }
+
+    private function getLastRow(): int
+    {
+        return $this->universe->getRows() - 1;
+    }
+
+    private function getLastColumn(): int
+    {
+        return $this->universe->getColumns() - 1;
+    }
+
+    private function isFirstColumn(int $currentIndex): bool
+    {
+        return $this->getCurrentColumn($currentIndex) === 0;
+    }
+
+    private function isLastColumn(int $currentIndex): bool
+    {
+        return $this->getCurrentColumn($currentIndex) === $this->getLastColumn();
+    }
+
+    private function isFirstRow(int $currentIndex): bool
+    {
+        return $this->getCurrentRow($currentIndex) === 0;
+    }
+
+    private function isLastRow(int $currentIndex): bool
+    {
+        return $this->getCurrentRow($currentIndex) === $this->getLastRow();
+    }
+
+    private function getCellRange(int $firstIndex, int $lastIndex): array
+    {
+        $cells = [];
+        for ($i = $firstIndex; $i <= $lastIndex; $i++) {
+            $cells[] = $this->universe->getCells()[$i];
+        }
+        return $cells;
     }
 
     private function processCells(array $cellsToKill, array $cellsToResurrect)
     {
         foreach ($cellsToKill as $cell) {
-            $this->universe->getGrid()[$cell['row']][$cell['column']]->markDead();
+            $cell->markDead();
         }
         foreach ($cellsToResurrect as $cell) {
-            $this->universe->getGrid()[$cell['row']][$cell['column']]->markAlive();
+            $cell->markAlive();
         }
     }
 }
