@@ -48,7 +48,7 @@ class GameOfLife
     {
         return array_filter(
             $this->universe->getCells(),
-            fn($index) => $this->hasPerfectNeigbors($index),
+            fn($index) => $this->hasPerfectNeighbors($index),
             ARRAY_FILTER_USE_KEY
         );
     }
@@ -62,7 +62,7 @@ class GameOfLife
         return $aliveNeighbors < self::MIN_NEIGHBORS_FOR_ALIVE || $aliveNeighbors > self::MAX_NEIGHBORS_FOR_ALIVE;
     }
 
-    private function hasPerfectNeigbors(int $currentIndex)
+    private function hasPerfectNeighbors(int $currentIndex)
     {
         $neighbors = $this->getNeighbors($currentIndex);
         $aliveNeighbors = count(
